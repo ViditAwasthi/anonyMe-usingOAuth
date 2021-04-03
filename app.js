@@ -6,8 +6,8 @@ const mongoose = require("mongoose");
 const session = require('express-session');
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
-var GoogleStrategy = require('passport-google-oauth20').Strategy;
-
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const findOrCreate = require('mongoose-findorcreate')
 
 const app = express();
 app.use(express.static("public"));
@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.plugin(passportLocalMongoose);
-
+userSchema.plugin(findOrCreate)
 
 const User = new mongoose.model("User", userSchema);
 
@@ -57,6 +57,18 @@ passport.use(new GoogleStrategy({
 app.get("/", function(req,res){
   res.render("home");
 });
+
+app.get("/auth/google",
+  passport.authenticate("google", { scope: ["profile"] })
+);
+
+app.get("/auth/google/secrets",
+  passport.authenticate("google", { failureRedirect: "/login" }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/secrets');
+  });
+
 
 
 app.get("/login", function(req,res){
